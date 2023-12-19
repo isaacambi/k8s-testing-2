@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-backend
+spec:
+  selector:
+    matchLabels:
+      app: users-backend
+  template:
+    metadata:
+      labels:
+        app: users-backend
+    spec:
+      containers:
+      - name: users-backend
+        image: sheriffexcel/backend-app
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 3000
+
+        env:
+          - name: MONGODB_CONNECTION_URI 
+            valueFrom:
+              name: auth-config
+              key: mongo-url
+
+          - name: AUTH_API_ADDRESSS
+            valueFrom:
+              configMapKeyRef:
+                name: auth-config
+                key:  middle-ware
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: users-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: users-backend
+  ports:
+  - port: 8000
+    targetPort: 3000
+
